@@ -2,7 +2,7 @@
 /**
  * Plugin Name:     Ultimate Member - Detect Login Country
  * Description:     Extension to Ultimate Member to detect logins from unexpected countries.
- * Version:         1.0.0 
+ * Version:         1.1.0 
  * Requires PHP:    7.4
  * Author:          Miss Veronica
  * License:         GPL v2 or later
@@ -30,25 +30,43 @@ function um_detect_login_country( $args ) {
     if ( ! in_array( $userInfo->country->isoCode, $accepted_country_codes )) {
 
         $um_countries = UM()->builtin()->get( 'countries' );
-        if( isset( $um_countries[$userInfo->country->isoCode] )) {
+        if ( isset( $um_countries[$userInfo->country->isoCode] )) {
             $country_name = $um_countries[$userInfo->country->isoCode];
         } else {
             $country_name = '';
         }
 
-        $to      = get_option( 'admin_email' );
-        $subject = __( 'Detect Login Country', 'ultimate-member' );
+        $mail_from_addr = UM()->options()->get( 'mail_from_addr' ); 
+        if ( empty( $mail_from_addr ) ) $mail_from_addr = get_option( 'admin_email' );
 
-        $body    = sprintf( __( 'Login Country Code %s', 'ultimate-member' ), $userInfo->country->isoCode ) . '<br>' .
-                   sprintf( __( 'Login Country Name %s', 'ultimate-member' ), $country_name ) . '<br>' . 
-                   sprintf( __( 'Login City %s', 'ultimate-member' ), $userInfo->city->name ) . '<br>' . 
-                   sprintf( __( 'User IP Address %s', 'ultimate-member' ), geoip_detect2_get_client_ip()) . '<br>' .
-                   sprintf( __( 'Submitted UM Username %s', 'ultimate-member' ), $args['submitted']['username'] ) . '<br>' . 
-                   sprintf( __( 'Allowed Country Codes %s', 'ultimate-member' ), UM()->options()->get( 'um_detect_login_country' ));
+        $site_name = UM()->options()->get( 'site_name' );
+        if ( empty( $site_name )) $site_name = '';
 
-        $headers = array( 'Content-Type: text/html; charset=UTF-8' );
+        $blog_name = get_bloginfo( 'name' );
+        if ( empty( $blog_name )) $blog_name = '';
+        
+        $date_time = date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), current_time( 'timestamp' ));
 
-        wp_mail( $to, $subject, $body, $headers, array( '' ) );
+        if ( ! empty( get_option( 'admin_email' ) )) {
+
+            $to      = get_option( 'admin_email' );
+            $subject = __( 'Detect Login Country', 'ultimate-member' );
+
+            $body = sprintf( __( 'Site Name %s',                'ultimate-member' ), $site_name ) . '<br>' .
+                    sprintf( __( 'Blog Name %s',                'ultimate-member' ), $blog_name ) . '<br>' .
+                    sprintf( __( 'Date and Time %s',            'ultimate-member' ), $date_time ) . '<br>' .
+                    sprintf( __( 'Login Country Code %s',       'ultimate-member' ), $userInfo->country->isoCode ) . '<br>' .
+                    sprintf( __( 'Login Country Name %s',       'ultimate-member' ), $country_name ) . '<br>' . 
+                    sprintf( __( 'Login City %s',               'ultimate-member' ), $userInfo->city->name ) . '<br>' . 
+                    sprintf( __( 'User Client IP Address %s',   'ultimate-member' ), geoip_detect2_get_client_ip()) . '<br>' .
+                    sprintf( __( 'Submitted UM Username %s',    'ultimate-member' ), $args['submitted']['username'] ) . '<br>' . 
+                    sprintf( __( 'Allowed Country Codes %s',    'ultimate-member' ), UM()->options()->get( 'um_detect_login_country' ));
+
+            $headers = array( 'Content-Type: text/html; charset=UTF-8',
+                              'From: ' . stripslashes( $site_name ) . ' <' . $mail_from_addr . '>' );
+
+            wp_mail( $to, $subject, $body, $headers, array( '' ) );
+        }
     }
 
 }
@@ -60,7 +78,7 @@ function um_settings_structure_detect_login_country( $settings_structure ) {
             'type'          => 'text',
             'label'         => __( 'Detect Login Country - Country Codes accepted', 'ultimate-member' ),
             'size'          => 'medium',
-            'tooltip'       => __( 'Comma separated two character capital letter country codes which are accepted.', 'ultimate-member' )
+            'tooltip'       => __( 'Comma separated two character capital letter country codes (ISO 3166) which are accepted. Other country codes will send an admin email.', 'ultimate-member' )
             );
 
     return $settings_structure;

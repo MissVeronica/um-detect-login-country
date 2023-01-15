@@ -7,7 +7,10 @@ UM Settings -> Access -> Other -> "Detect Login Country - Country Codes accepted
 2. https://www.iban.com/country-codes
 3. When a user with a not accepted Country Code logs in a notification email with details about the user login is being sent to site admin.
 
-
+## Updates
+Version 1.1.0
+1. Addition of Site/Blog names
+2. Addition of Date/Time
 
 ## Installation
 1. Download the zip file and install as a WP Plugin, activate the plugin.

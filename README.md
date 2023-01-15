@@ -1,5 +1,7 @@
 # UM Detect Login Country
 Extension to Ultimate Member to detect logins from unexpected countries.
+
+Note: Unexpected country for login may be via a proxy server/VPN network.
 ## Settings
 UM Settings -> Access -> Other -> "Detect Login Country - Country Codes accepted"
 
